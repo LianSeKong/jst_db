@@ -7,43 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model admin {
-  id       Int    @id(map: "PK__admin__3213E83FE37F9DC9") @default(autoincrement())
-  loginId  String @db.NVarChar(255)
-  name     String @db.NVarChar(255)
-  loginPwd String @db.NVarChar(255)
-}
-
-model banner {
-  id          Int    @id(map: "PK__banner__3213E83FCF7BB95E") @default(autoincrement())
-  midImg      String @db.NVarChar(255)
-  bigImg      String @db.NVarChar(255)
-  title       String @db.NVarChar(255)
-  description String @db.NVarChar(255)
-}
-
-model blog {
-  id            Int       @id(map: "PK__blog__3213E83FD4513B07") @default(autoincrement())
-  title         String    @db.NVarChar(255)
-  description   String    @db.NVarChar(Max)
-  toc           String    @db.NVarChar(Max)
-  htmlContent   String    @db.NVarChar(Max)
-  thumb         String    @db.NVarChar(255)
-  scanNumber    Int
-  commentNumber Int
-  createDate    DateTime  @db.DateTimeOffset
-  categoryId    Int?
-  blogType      blogType? @relation(fields: [categoryId], references: [id], onUpdate: NoAction, map: "FK__blog__categoryId__0682EC34")
-}
-
-model blogType {
-  id           Int    @id(map: "PK__blogType__3213E83F3A41B5C9") @default(autoincrement())
-  name         String @db.NVarChar(255)
-  articleCount Int
-  order        String @db.NVarChar(255)
-  blog         blog[]
-}
-
 model combine_shops {
   i_id             String  @db.VarChar(512)
   name             String? @db.VarChar(512)
@@ -63,6 +26,28 @@ model combine_shops {
   enabled          Int?
   sku_qty          Int?
   ID               Int     @id(map: "PK__combine___98F919BA8A64AA56") @default(autoincrement())
+  other_price_1    Float?  @db.Money
+  other_price_2    Float?  @db.Money
+  other_price_3    Float?  @db.Money
+  other_price_4    Float?  @db.Money
+  other_price_5    Float?  @db.Money
+  other_1          String? @db.VarChar(255)
+  other_2          String? @db.VarChar(255)
+  other_3          String? @db.VarChar(255)
+  other_4          String? @db.VarChar(255)
+  other_5          String? @db.VarChar(255)
+  other_6          String? @db.VarChar(255)
+  other_7          String? @db.VarChar(255)
+  other_8          String? @db.VarChar(255)
+  other_9          String? @db.VarChar(255)
+  other_10         String? @db.VarChar(255)
+  l                Float?
+  h                Float?
+  w                Float?
+  volume           Float?
+  item_type        String? @db.VarChar(255)
+  remark           String? @db.VarChar(255)
+  sku_code         String? @db.VarChar(255)
 }
 
 model combine_shops_item {
