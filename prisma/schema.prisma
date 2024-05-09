@@ -122,8 +122,8 @@ model order_operation_log {
   oa_id        Int?
   o_id         Int?
   name         String? @db.VarChar(255)
-  remark       String? @db.VarChar(255)
+  remark       String? @db.VarChar(4095)
   created      String? @db.VarChar(255)
   creator_name String? @db.VarChar(255)
-  ID           Int     @id(map: "PK__order_op__3214EC27784DC294") @default(autoincrement())
+  ID           BigInt  @id(map: "PK__order_op__3214EC27784DC294") @default(autoincrement())
 }

@@ -3,7 +3,8 @@ const { CallJSTAPI } = require("../utils/CallJSTAPI");
 // 订单操作日志URL
 const { CronJob } = require('cron');
 const URL = 'open/order/action/query';
-
+const moment = require("moment");
+const formatStr = "YYYY-MM-DD HH:mm:ss";
 
 
 
@@ -17,7 +18,6 @@ function getLogs(modified_begin, modified_end) {
     };
     let list = [];
     let has_next = true;
-    let isBulk = false;
     // 重新开始
     function restart() {
         biz.page_index = 1;
@@ -29,16 +29,16 @@ function getLogs(modified_begin, modified_end) {
         async function () {
           if (has_next) {
             try {
-              if (list.length > 10000) { 
-                const dataArray = [...list];
-                list = [];
-                await prisma.order_operation_log.createMany({ data: dataArray });
-              } else {
-                const { data } = await CallJSTAPI(URL, biz);
-                list.push(...data.datas);
-                has_next = data.has_next;
-                biz.page_index = biz.page_index + 1;
-              }
+                if (list.length > 10000) { 
+                    const dataArray = [...list];
+                    list = [];
+                    await prisma.order_operation_log.createMany({ data: dataArray });
+                  } else {
+                    const { data } = await CallJSTAPI(URL, biz);
+                    list.push(...data.datas);
+                    has_next = data.has_next;
+                    biz.page_index = biz.page_index + 1;
+                  }
             } catch (error) {
               console.log(error);
               restart();
@@ -48,6 +48,7 @@ function getLogs(modified_begin, modified_end) {
           }
         },
         async function () {
+
           const result = await prisma.order_operation_log.createMany({ data: list });
           console.log("订单操作日志入库完成！", result);
           await prisma.$disconnect();
@@ -59,3 +60,11 @@ function getLogs(modified_begin, modified_end) {
 }
 
 module.exports = { getLogs };
+const m = new moment('2024-05-09 15:00:00');
+let modified_end = m.format(formatStr);
+
+m.subtract(3, "hours");
+let modified_begin = m.format(formatStr);
+getLogs(modified_begin, modified_end);
+
+// (空)->-【(收)，2024-5-9，张德荣(佳美)，菜鸟速递621120432551017， E01534-M*1】#
