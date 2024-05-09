@@ -1,16 +1,15 @@
 const { prisma } = require("../utils/dbConnect");
 const { CallJSTAPI } = require("../utils/CallJSTAPI");
 const { CronJob } = require("cron");
-const moment = require("moment");
-const formatStr = "YYYY-MM-DD HH:mm:ss";
+
 // open/combine/sku/query
-function getCombineShopList() {
+function getCombineShopList(modified_begin, modified_end) {
   const biz = {
     page_index: 1,
     page_size: 50,
-    modified_begin: "",
-    modified_end: "",
-    "combine_itemsku_flds":  [
+    modified_begin,
+    modified_end,
+    combine_itemsku_flds:  [
       "sku_id",
       "labels",
       "sku_code",
@@ -52,10 +51,7 @@ function getCombineShopList() {
       "enabled"
   ]
   };
-  const m = new moment();
-  biz.modified_end = m.format(formatStr);
-  m.subtract(1, "hours");
-  biz.modified_begin = m.format(formatStr);
+
   let list = [];
   let has_next = true;
   // 重新开始

@@ -1,20 +1,15 @@
 const { prisma } = require("../utils/dbConnect");
 const { CallJSTAPI } = require("../utils/CallJSTAPI");
 const { CronJob } = require("cron");
-const moment = require("moment");
-const formatStr = "YYYY-MM-DD HH:mm:ss";
 
-function getCommonShopList() {
+
+function getCommonShopList(modified_begin, modified_end) {
   const biz = {
     page_index: 1,
     page_size: 50,
-    modified_begin: "",
-    modified_end: "",
+    modified_begin,
+    modified_end,
   };
-  const m = new moment();
-  biz.modified_end = m.format(formatStr);
-  m.subtract(1, "hours");
-  biz.modified_begin = m.format(formatStr);
   let list = [];
   let has_next = true;
 
