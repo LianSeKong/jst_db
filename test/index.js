@@ -19,3 +19,5 @@ CallJSTAPI('open/jushuitan/itemsku/upload', {
 }).then(function(res) {
     console.log(res.data.datas);
 })
+
+/open/order/action/query
