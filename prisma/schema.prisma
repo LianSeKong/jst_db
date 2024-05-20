@@ -116,6 +116,7 @@ model common_shops {
   ID                     Int      @id(sort: Desc, map: "PK__common_s__3213E83F5F5526A2") @default(autoincrement())
   productionbatch_format String?  @db.NVarChar(Max)
   color                  String?  @db.VarChar(255)
+  sku_codes              String?  @db.VarChar(511)
 }
 
 model order_operation_log {
