@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -127,4 +128,24 @@ model order_operation_log {
   created      String? @db.VarChar(255)
   creator_name String? @db.VarChar(255)
   ID           BigInt  @id(map: "PK__order_op__3214EC27784DC294") @default(autoincrement())
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view edit_order_note_confirm_layout {
+  erp_order_id   String @db.NVarChar(511)  @unique
+  order_note_new String? @db.NVarChar(Max)
+
+
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view edit_sku_label_design_available {
+  sku_id String @db.NVarChar(511)  @unique
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view process_order_customed_order {
+  erp_order_id String @db.NVarChar(255)  @unique
+  sku_category String? @db.NVarChar(255)
+  sku_map      String? @db.NVarChar(255)
 }

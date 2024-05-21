@@ -49,12 +49,10 @@ function updateLabels(data) {
     })
 }
 
-async function markCommonShop() {
+async function begin() {
     const sku_ids = await getNeedDealSkuIDs()
     const data = await getCommonShopDetailData(sku_ids)
     const items = updateLabels(data)
     const res = await CallJSTAPI('open/jushuitan/itemsku/upload', { items })
     console.log(res.data.datas);
 }
-
-module.exports.markCommonShop = markCommonShop

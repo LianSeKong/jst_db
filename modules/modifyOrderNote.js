@@ -31,8 +31,7 @@ async function updateNotes(data) {
   }
 }
 
-async function modifyOrderNote() {
+async function begin() {
   await updateNotes(await getOrderArray())
   console.log('修改成功');
 }
-module.exports.modifyOrderNote = modifyOrderNote
