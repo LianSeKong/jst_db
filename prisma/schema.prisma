@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["views"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -130,22 +129,49 @@ model order_operation_log {
   ID           BigInt  @id(map: "PK__order_op__3214EC27784DC294") @default(autoincrement())
 }
 
-/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-view edit_order_note_confirm_layout {
-  erp_order_id   String @db.NVarChar(511)  @unique
-  order_note_new String? @db.NVarChar(Max)
-
-
+model purchase {
+  seller            String? @db.VarChar(255)
+  send_address      String? @db.VarChar(511)
+  po_id             Int?
+  item_type         String? @db.VarChar(255)
+  freight           Float?  @db.Money
+  remark            String? @db.NVarChar(Max)
+  tax_rate          Float?
+  so_id             String? @db.VarChar(255)
+  purchaser_name    String? @db.NVarChar(255)
+  modified          String? @db.NVarChar(255)
+  receiver_name     String? @db.NVarChar(255)
+  term              String? @db.NVarChar(255)
+  wms_co_name       String? @db.NVarChar(255)
+  payment_method    String? @db.NVarChar(255)
+  more_rate         Float?
+  po_date           String? @db.NVarChar(255)
+  finish_time       String? @db.NVarChar(255)
+  receive_status    String? @db.NVarChar(255)
+  labels            String? @db.NVarChar(511)
+  wms_co_id         Int?
+  confirm_date      String? @db.NVarChar(255)
+  logistics_company String? @db.NVarChar(255)
+  l_id              String? @db.NVarChar(255)
+  receiver_phone    String? @db.NVarChar(255)
+  supplier_id       Int?
+  source_o_id       String? @db.NVarChar(255)
+  status            String? @db.NVarChar(255)
+  id                Int     @id(map: "PK__purchase__3213E83F6BFF0C8F") @default(autoincrement())
 }
 
-/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-view edit_sku_label_design_available {
-  sku_id String @db.NVarChar(511)  @unique
-}
-
-/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-view process_order_customed_order {
-  erp_order_id String @db.NVarChar(255)  @unique
-  sku_category String? @db.NVarChar(255)
-  sku_map      String? @db.NVarChar(255)
+model purchase_item {
+  i_id             String? @db.NVarChar(255)
+  delivery_date    String? @db.NVarChar(255)
+  properties_value String? @db.NVarChar(511)
+  po_id            Int?
+  price            Float?  @db.Money
+  plan_arrive_qty  Int?
+  qty              Int?
+  name             String? @db.NVarChar(255)
+  sku_id           String? @db.NVarChar(255)
+  remark           String? @db.NVarChar(511)
+  poi_id           Int?
+  tax_rate         Float?
+  id               Int     @id(sort: Desc, map: "PK__purchase__3213E83F6C7ABB59") @default(autoincrement())
 }

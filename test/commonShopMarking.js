@@ -11,6 +11,7 @@ async function getNeedDealSkuIDs (params) {
     // return 'HMA125175-3E,G010-T42_9340607,QC30007947-Z1-D6,QC30007947-Z1-D7,QC30007947-Z1-D8';
 }
 
+
 // 根据SKUID去获取商品数据
 async function getCommonShopDetailData( sku_ids ) {    
     const result = await CallJSTAPI('open/sku/query', { sku_ids })

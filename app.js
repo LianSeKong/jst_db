@@ -1,13 +1,14 @@
 const { getCombineShopList } = require('./modules/combineShop')
 const { getCommonShopList } = require('./modules/commonShop')
 const { getLogs } = require('./modules/order_operation_log')
+const { getPurchaseList } = require('./modules/purchase.js')
 const { refrshToken } = require('./utils/refresh_token')
 const moment = require("moment");
 const formatStr = "YYYY-MM-DD HH:mm:ss";
 const fs = require('fs')
 const path = require('path')
 const { CronJob } = require('cron');
-new CronJob('0 1 * * * *', 
+new CronJob('0 0 * * * *', 
     async function () {
         const config = JSON.parse(fs.readFileSync(path.join(__dirname, './utils/jstconfig.json'), 'utf8'))
         if (Math.ceil(config.expires_in / 60 / 60 / 24) < 10) {

@@ -70,7 +70,7 @@ function getCombineShopList(modified_begin, modified_end) {
             has_next = data.has_next;
             biz.page_index = biz.page_index + 1;
           } catch (error) {
-            console.log("获取组合装商品数据失败：", err, biz);
+            console.log("获取组合装商品数据失败：", error, biz);
             restart()
           }
         } else {
