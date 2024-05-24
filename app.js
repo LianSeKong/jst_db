@@ -11,16 +11,18 @@ const { CronJob } = require('cron');
 new CronJob('0 0 * * * *', 
     async function () {
         const config = JSON.parse(fs.readFileSync(path.join(__dirname, './utils/jstconfig.json'), 'utf8'))
-        if (Math.ceil(config.expires_in / 60 / 60 / 24) < 10) {
-            await refrshToken();
-        }
+
         const m = new moment();
         let modified_end = m.format(formatStr);
         m.subtract(1, "hours");
         let modified_begin = m.format(formatStr);
+        if (modified_end > new moment(config.generate).add(21, 'days').format(formatStr)) {
+            await refrshToken(modified_end);
+        }
         getLogs(modified_begin, modified_end)
         getCommonShopList(modified_begin, modified_end)
         getCombineShopList(modified_begin, modified_end)
+        getPurchaseList(modified_begin, modified_end)
     }, // onTick
     function () {
 

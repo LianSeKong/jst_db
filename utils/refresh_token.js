@@ -68,12 +68,13 @@ async function CallJSTAPI(apiPath) {
 }
 
 
-async function refrshToken() {
+async function refrshToken(generate) {
     const res = await CallJSTAPI("openWeb/auth/refreshToken")
     if (res.code === 0) {
         const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'jstconfig.json'), 'utf8'))
         config.refresh_token = res.data.refresh_token
         config.expires_in = res.data.expires_in
+        config.generate = generate
         fs.writeFileSync(path.join(__dirname, 'jstconfig.json'), JSON.stringify(config, null, 4))
         return res.data.refresh_token
     } else {
