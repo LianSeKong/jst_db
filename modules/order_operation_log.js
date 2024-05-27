@@ -34,7 +34,8 @@ function getLogs(modified_begin, modified_end) {
                 list = [];
                 await prisma.order_operation_log.createMany({ data: dataArray });
               } else {
-                const { data } = await CallJSTAPI(URL, biz);
+                const {data} = await CallJSTAPI(URL, biz);
+
                 list.push(...data.datas);
                 has_next = data.has_next;
                 biz.page_index = biz.page_index + 1;

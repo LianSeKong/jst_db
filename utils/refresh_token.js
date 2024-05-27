@@ -74,6 +74,7 @@ async function refrshToken(generate) {
         const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'jstconfig.json'), 'utf8'))
         config.refresh_token = res.data.refresh_token
         config.expires_in = res.data.expires_in
+        config.access_token = config.access_token
         config.generate = generate
         fs.writeFileSync(path.join(__dirname, 'jstconfig.json'), JSON.stringify(config, null, 4))
         return res.data.refresh_token
