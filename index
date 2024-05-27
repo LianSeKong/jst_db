@@ -1,4 +1,4 @@
- 
+#!/usr/bin/nodejs 
 const { getCombineShopList } = require('./modules/combineShop')
 const { getCommonShopList } = require('./modules/commonShop')
 const { getLogs } = require('./modules/order_operation_log')
