@@ -5,11 +5,15 @@ const biz = {
     page_size: 50,
     modified_begin: '2024-05-21',
     modified_end: '2024-05-23',
-    "po_ids": [],
-    "so_ids": [],
-  };
-CallJSTAPI("open/purchase/query", biz).then(
+    po_ids: [],
+    so_ids: [],
+    statuss: [],
+
+
+};
+
+CallJSTAPI("open/purchasein/query", biz).then(
     res => {
-        console.log(res.data.datas);
+        console.log(res.data.datas.flatMap(item => item.items).filter(item => item.tax_rate !== null));
     }
 )

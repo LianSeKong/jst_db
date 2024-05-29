@@ -3,23 +3,49 @@ const { CallJSTAPI } = require("../utils/CallJSTAPI");
 const { CronJob } = require('cron');
 const moment = require('moment')
 
-// 递增周期
-/**
- * 
- * @param { String } modified_begin 
- * @param { String } modified_end 
- * @returns { Object } 
- */
-function increaseTime(modified_begin, modified_end) {
-    modified_begin = new moment(modified_begin).add(7, "days")
-    modified_end = new moment(modified_end).add(7, "days")
-    return {modified_begin, modified_end}
+
+interface biz {
+    wms_co_id: number,  // 分仓公司编号
+    page_index: number,
+    modified_begin: string,
+    modified_end: string,
+    has_lock_qty: boolean,
+    page_size: number
 }
 
+interface ReturnVal {
+    sku_id: string,
+    i_id: string,
+    name: string,
+    qty: number,
+    order_lock: number,
+    pick_lock: number,
+    virtual_qty: number,
+    purchase_qty: number,
+    return_qty: number,
+    in_qty: number,
+    lock_qty: string,
+    defective_qty: number,
+    modified: string,
+    min_qty: number,
+    max_qty: number,
+    customize_qty_1: number,
+    customize_qty_2: number,
+    customize_qty_3: number,
+    allocate_qty: number
+}
 
-function goToNext(modified_begin, modified_end) {
+// 递增周期
+function increaseTime(modified_begin:string, modified_end:string) {
+    modified_begin = new moment(modified_begin).add(7, "days")
+    modified_end = new moment(modified_end).add(7, "days")
+    return { modified_begin, modified_end }
+}
+
+// 增量更新后7天
+function goToNext(modified_begin:string, modified_end:string):biz {
     const currentTime = increaseTime(modified_begin, modified_end)
-    return {
+    const returnVal: biz =  {
         wms_co_id: 0,  // 分仓公司编号
         page_index: 1,
         modified_begin: currentTime.modified_begin,
@@ -27,16 +53,19 @@ function goToNext(modified_begin, modified_end) {
         has_lock_qty: true,
         page_size: 100
     }
+    return returnVal
 }
 
-let biz = {
-    "wms_co_id": 0,
-    "page_index": 1,
-    "modified_begin": "2024-04-22 01:00:06",
-    "modified_end": "2024-04-28 00:00:06",
-    "has_lock_qty": true,
-    "page_size": 100
+let queryParams: biz = {
+    wms_co_id: 0,
+    page_index: 1,
+    modified_begin: "2020-01-01 00:00:00",
+    modified_end: "2020-01-08 00:00:00",
+    has_lock_qty: true,
+    page_size: 100
 }
+
+
 /**
  * 1. 请求数据（一次请求七天）
  *    *  每五秒一次
@@ -55,11 +84,11 @@ new CronJob(cronTime,
     async function () {
         if (hasNext) {
             if (!isInOperation) {
-                CallJSTAPI('open/inventory/query', biz).then(res => {
+                CallJSTAPI('open/inventory/query', queryParams).then(res => {
                     if (res.code === 0) {
                         const { has_next = false, inventorys } = res.data;
                         list.push(...inventorys);
-                        biz.page_index += 1;
+                        queryParams.page_index += 1;
                         hasNext = has_next;
                     }
                 })
