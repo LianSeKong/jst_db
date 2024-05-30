@@ -203,11 +203,11 @@ model purchasein {
   po_id         Int?
   out_io_id     String? @db.NVarChar(255)
   io_date       String? @db.NVarChar(255)
-  remark        String? @db.NVarChar(1)
-  warehouse     String? @db.NVarChar(1)
-  type          String? @db.NVarChar(1)
+  remark        String? @db.NVarChar(255)
+  warehouse     String? @db.NVarChar(255)
+  type          String? @db.NVarChar(255)
   tax_rate      Float?
-  io_id         Int?
+  io_id         Int     @id(sort: Desc, map: "PK__purchase__D86D540D70DD1ABD")
   labels        String? @db.NVarChar(255)
   archived      String? @db.NVarChar(255)
   merge_so_id   String? @db.NVarChar(255)
@@ -222,7 +222,6 @@ model purchasein {
   f_status      String? @db.NVarChar(255)
   status        String? @db.NVarChar(255)
   ts            Int?
-  id            Int     @id(map: "PK__purchase__3213E83FE2048915") @default(autoincrement())
 }
 
 model purchasein_item {
@@ -233,12 +232,11 @@ model purchasein_item {
   qty              Int?
   name             String? @db.NVarChar(255)
   sku_id           String? @db.NVarChar(255)
-  remark           String? @db.NVarChar(1)
-  ioi_id           Int?
+  remark           String? @db.NVarChar(255)
+  ioi_id           Int     @id(sort: Desc, map: "PK__purchase__3213E83F36F0050B")
   tax_rate         Float?
   io_id            Int?
   cost_price       Float?  @db.Money
-  id               Int     @id(map: "PK__purchase__3213E83F36F0050B") @default(autoincrement())
 }
 
 model partner {
