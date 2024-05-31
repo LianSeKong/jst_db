@@ -41,8 +41,7 @@ function getCommonShopList(modified_begin, modified_end) {
         }
       },
       async function () {
-        const result = await prisma.common_shops.createMany({ data: list })
-        foramtRequestDBInsert(biz, '普通商品资料', result.count)
+        foramtRequestDBInsert(biz, '普通商品资料', await prisma.common_shops.createMany({ data: list }))
         res('ok')
 
       },

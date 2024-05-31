@@ -63,10 +63,7 @@ function getCombineShopList(modified_begin, modified_end) {
             data,
           });
           res('ok')
-          foramtRequestDBInsert(biz, '组合装商品资料', {
-            '组合装子表': itemResult.count,
-            '组合装总表': dataResult.count
-           })
+          foramtRequestDBInsert(biz, '组合装商品资料', {itemResult, dataResult })
         },
         true,
         "system" // timeZone

@@ -47,7 +47,7 @@ function getLogs(modified_begin, modified_end) {
     },
     async function () {
       const result = await prisma.order_operation_log.createMany({ data: list });
-      foramtRequestDBInsert(biz, '订单操作日志', result.count)
+      foramtRequestDBInsert(biz, '订单操作日志', result)
       res('ok')
     },
     true,
