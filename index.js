@@ -19,12 +19,14 @@ new CronJob('0 0/5 * * * *',
         }
        await updatePartner()
 
-       await updateCombineShop(modified_begin, modified_end);
-       await updateCommonShop(modified_begin, modified_end);
-       await updateInventory(modified_begin, modified_end);
-       await updateLogs(modified_begin, modified_end);
-       await updatePurchase(modified_begin, modified_end);
-       await updatePurchasein(modified_begin, modified_end);
+       await Promise.all([
+            updateCombineShop(modified_begin, modified_end),
+            updateCommonShop(modified_begin, modified_end),
+            updateInventory(modified_begin, modified_end),
+            updateLogs(modified_begin, modified_end),
+            updatePurchase(modified_begin, modified_end),
+            updatePurchasein(modified_begin, modified_end)])
+            
        prisma.$disconnect() 
     }, // onTick
     function () {

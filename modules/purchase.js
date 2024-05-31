@@ -95,8 +95,8 @@ function getPurchaseList(modified_begin, modified_end) {
         let purchase_item_info = await insertIntoDatabaseOfPurchaseItem(itemList)
         let purchase_info = await insertIntoDatabaseOfPurchase(list)
         foramtRequestDBInsert(biz, '采购单', { 
-            '采购单主表': purchase_info,
-            '采购单子表': purchase_item_info  
+            '采购单主表': purchase_info.count,
+            '采购单子表': purchase_item_info.count  
         })
         res('ok')
       },

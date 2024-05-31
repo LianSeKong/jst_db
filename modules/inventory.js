@@ -11,11 +11,11 @@ async function getAllpartner() {
 async function getInventoryList(modified_begin, modified_end) {
     const partnerList = await getAllpartner()
     for (const partner of partnerList) {
-      await parallel(partner.wms_co_id, modified_begin, modified_end)
+       await parallel(partner.wms_co_id, partner.name,modified_begin, modified_end)
     }
 }
 
-function parallel(wms_co_id, modified_begin, modified_end) {
+function parallel(wms_co_id, name, modified_begin, modified_end) {
   return new Promise((res, rej) => {
     let biz = {
         wms_co_id: wms_co_id,
@@ -26,7 +26,7 @@ function parallel(wms_co_id, modified_begin, modified_end) {
         page_size: 100
     }
 
-    const cronTime =  `0/7 * * * * *`
+    const cronTime =  `0/5 * * * * *`
     let hasNext = true;
     let list = [];
 
@@ -66,7 +66,7 @@ function parallel(wms_co_id, modified_begin, modified_end) {
                     create: inventory,
                 })
             }
-            foramtRequestDBInsert(biz, '商品库存', {
+            foramtRequestDBInsert(biz, `商品库存, \n仓库名称：${name}`, {
                 '插入|更新': list.length
             })
             res('ok')
