@@ -22,18 +22,20 @@ async function insertIntoDatabaseOfPurchase(list) {
         item.status = "作废";
         break;
     }
+
+    
     switch (item.receive_status) {
       case "Timeout":
-        item.status = "预计收货超时";
+        item.receive_status = "预计收货超时";
         break;
       case "Received":
-        item.status = "全部入库";
+        item.receive_status = "全部入库";
         break;
       case "Part_Received":
-        item.status = "部分入库";
+        item.receive_status = "部分入库";
         break;
       case "Not_Received":
-        item.status = "未入库";
+        item.receive_status = "未入库";
         break;
     }
     return item;
