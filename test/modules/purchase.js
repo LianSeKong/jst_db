@@ -22,18 +22,20 @@ async function insertIntoDatabaseOfPurchase(list) {
         item.status = "作废";
         break;
     }
+
+    
     switch (item.receive_status) {
       case "Timeout":
-        item.status = "预计收货超时";
+        item.receive_status = "预计收货超时";
         break;
       case "Received":
-        item.status = "全部入库";
+        item.receive_status = "全部入库";
         break;
       case "Part_Received":
-        item.status = "部分入库";
+        item.receive_status = "部分入库";
         break;
       case "Not_Received":
-        item.status = "未入库";
+        item.receive_status = "未入库";
         break;
     }
     return item;
@@ -95,8 +97,8 @@ function getPurchaseList(modified_begin, modified_end) {
         let purchase_item_info = await insertIntoDatabaseOfPurchaseItem(itemList)
         let purchase_info = await insertIntoDatabaseOfPurchase(list)
         foramtRequestDBInsert(biz, '采购单', { 
-            '采购单主表': purchase_info,
-            '采购单子表': purchase_item_info  
+            '采购单主表': purchase_info.count,
+            '采购单子表': purchase_item_info.count  
         })
         res('ok')
       },

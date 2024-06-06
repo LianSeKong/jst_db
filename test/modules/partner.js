@@ -16,9 +16,9 @@ async function updatePartner() {
         
         function onTick() {
             if (hasNext) {
-                CallJSTAPI('open/wms/partner/query', biz).then(res => {
-                    if (res.code === 0) {
-                        const { has_next = false, datas } = res.data;
+                CallJSTAPI('open/wms/partner/query', biz).then(response => {
+                    if (response.code === 0) {
+                        const { has_next = false, datas } = response.data;
                         list.push(...datas);
                         biz.page_index += 1;
                         hasNext = has_next;

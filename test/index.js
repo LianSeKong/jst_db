@@ -1,9 +1,13 @@
-const moment = require("moment");
-const formatStr = "YYYY-MM-DD HH:mm:ss";
-const {getInventoryList} = require('./modules/inventory.js')
-const m = new moment();
-let modified_end = m.format(formatStr);
-m.subtract(5, "m");
-let modified_begin = m.format(formatStr);
+const {updatePartner, updateCombineShop, updateCommonShop, updateInventory, updateLogs, updatePurchase, updatePurchasein,} = require('./modules/index.js')
 
-getInventoryList(modified_begin, modified_end);
+
+
+
+async function helper () {
+
+    let modified_end = '2024-06-04 15:00:00';
+    let modified_begin = '2024-06-03 00:00:00';
+    updateCombineShop(modified_begin, modified_end)
+}
+helper()
+

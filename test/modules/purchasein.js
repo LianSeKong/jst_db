@@ -29,7 +29,7 @@ function getPurchaseinList(modified_begin, modified_end) {
                     try {
                         const response = await CallJSTAPI("open/purchasein/query", biz)
                         if (response.code === 0) {
-                            const { has_next = false, datas } = res.data;
+                            const { has_next = false, datas } = response.data;
                             if (datas instanceof Array) {
                                 const items = datas.flatMap(item => item.items)
                                     .filter(item => item instanceof Object)
@@ -37,6 +37,32 @@ function getPurchaseinList(modified_begin, modified_end) {
                                 const updateItemList = datas.map(item => {
                                     delete item.items
                                     delete item.ts
+
+                                    switch (item.status) {
+                                        case "Archive ":
+                                          item.status = "归档";
+                                          break;
+                                        case "WaitConfirm":
+                                          item.status = "待入库";
+                                          break;
+                                        case "Confirmed":
+                                          item.status = "已入库";
+                                          break;
+                                        case "OuterConfirming ":
+                                          item.status = "外部确认中";
+                                          break;
+                                        case "Cancelled":
+                                          item.status = "取消";
+                                          break;
+                                      }
+                                      switch (item.f_status) {
+                                        case "WaitConfirm":
+                                          item.f_status = "待审核";
+                                          break;
+                                        case "Confirmed":
+                                          item.f_status = "已审核";
+                                          break;
+                                      }
                                     return item
                                 })
                                 list.push(...updateItemList)

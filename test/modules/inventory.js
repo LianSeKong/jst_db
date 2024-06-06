@@ -10,14 +10,12 @@ async function getAllpartner() {
 
 async function getInventoryList(modified_begin, modified_end) {
     const partnerList = await getAllpartner()
-    parallel(10550862, modified_begin, modified_end)
-    return;
     for (const partner of partnerList) {
-      await parallel(partner.wms_co_id, modified_begin, modified_end)
+       await parallel(partner.wms_co_id, partner.name,modified_begin, modified_end)
     }
 }
 
-function parallel(wms_co_id, modified_begin, modified_end) {
+function parallel(wms_co_id, name, modified_begin, modified_end) {
   return new Promise((res, rej) => {
     let biz = {
         wms_co_id: wms_co_id,
@@ -28,7 +26,7 @@ function parallel(wms_co_id, modified_begin, modified_end) {
         page_size: 100
     }
 
-    const cronTime =  `0/7 * * * * *`
+    const cronTime =  `0/5 * * * * *`
     let hasNext = true;
     let list = [];
 
@@ -36,11 +34,9 @@ function parallel(wms_co_id, modified_begin, modified_end) {
         async function () {
             if (hasNext) {
                 try {
-                   
                     const response = await CallJSTAPI('open/inventory/query', biz)
-                    console.log(biz, response);
                     if (response.code === 0) {
-                        const { has_next = false, inventorys } = res.data;
+                        const { has_next = false, inventorys } = response.data;
                         if (inventorys instanceof Array) {
                             list.push(...inventorys);
                         }
@@ -51,9 +47,8 @@ function parallel(wms_co_id, modified_begin, modified_end) {
                         foramtRequestError(biz, `商品库存请求错误, wms_co_id: ${biz.wms_co_id}`, response)
                     }
                 } catch (error) {
-                    console.log(biz ,error);
                     hasNext = false
-                    foramtRequestError(biz, `商品库存请求网络错误, wms_co_id: ${biz.wms_co_id}`, error)
+                    foramtRequestError(biz, '商品库存请求网络错误', error)
                 }
             } else {
                 this.stop()
@@ -71,9 +66,8 @@ function parallel(wms_co_id, modified_begin, modified_end) {
                     create: inventory,
                 })
             }
-            foramtRequestDBInsert(biz, '商品库存', {
-                '插入|更新': list.length,
-                "wms_co_id": biz.wms_co_id
+            foramtRequestDBInsert(biz, `商品库存, \n仓库名称：${name}`, {
+                '插入|更新': list.length
             })
             res('ok')
         }, // onComplete

@@ -49,12 +49,15 @@ function getCombineShopList(modified_begin, modified_end) {
           const itemList = list.flatMap((item) => item.items)
           .filter(item => item instanceof Object);
   
-  
+          console.log(itemList);
+          console.log('-----------------');
+          console.log(list.flatMap((item) => item.items));
           const data = list.map((item) => {
               delete item.items
               return item
           })
-  
+
+          return
           const itemResult = await prisma.combine_shops_item.createMany({
             data: itemList,
           });
@@ -63,7 +66,10 @@ function getCombineShopList(modified_begin, modified_end) {
             data,
           });
           res('ok')
-          foramtRequestDBInsert(biz, '组合装商品资料', {itemResult, dataResult })
+          foramtRequestDBInsert(biz, '组合装商品资料', {
+            '组合装子表': itemResult.count,
+            '组合装总表': dataResult.count
+           })
         },
         true,
         "system" // timeZone

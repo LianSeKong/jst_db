@@ -157,7 +157,7 @@ model purchase {
   supplier_id       Int?
   source_o_id       String? @db.NVarChar(255)
   status            String? @db.NVarChar(255)
-  id                Int     @id(map: "PK__purchase__3213E83F6BFF0C8F") @default(autoincrement())
+  ID                BigInt  @id(map: "PK__purchase__3213E83F6BFF0C8F") @default(autoincrement())
 }
 
 model purchase_item {
@@ -173,7 +173,7 @@ model purchase_item {
   remark           String? @db.NVarChar(511)
   poi_id           Int?
   tax_rate         Float?
-  id               Int     @id(sort: Desc, map: "PK__purchase__3213E83F6C7ABB59") @default(autoincrement())
+  ID               BigInt  @id(sort: Desc, map: "PK__purchase__3213E83F6C7ABB59") @default(autoincrement())
 }
 
 model inventory {
@@ -222,6 +222,7 @@ model purchasein {
   f_status      String? @db.NVarChar(255)
   status        String? @db.NVarChar(255)
   ts            Int?
+  ID            BigInt  @default(autoincrement())
 }
 
 model purchasein_item {
@@ -237,6 +238,7 @@ model purchasein_item {
   tax_rate         Float?
   io_id            Int?
   cost_price       Float?  @db.Money
+  ID               BigInt  @default(autoincrement())
 }
 
 model partner {
