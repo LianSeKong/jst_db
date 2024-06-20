@@ -1,64 +1,68 @@
 const { prisma } = require("../utils/dbConnect");
 const { CallJSTAPI } = require("../utils/CallJSTAPI");
 // 订单操作日志URL
-const { CronJob } = require('cron');
-const URL = 'open/order/action/query';
-const { foramtRequestError, foramtRequestDBInsert } = require('../utils/tools')
-
-
+const { CronJob } = require("cron");
+const URL = "open/order/action/query";
+const { foramtRequestError, foramtRequestDBInsert } = require("../utils/tools");
 
 function getLogs(modified_begin, modified_end) {
   return new Promise((res, rej) => {
-     // 参数
-  const biz = {
-    page_index: 1,
-    page_size: 50,
-    modified_begin,
-    modified_end,
-  };
-  let list = [];
-  let has_next = true;
+    // 参数
+    const biz = {
+      page_index: 1,
+      page_size: 50,
+      modified_begin,
+      modified_end,
+    };
+    let list = [];
+    let has_next = true;
 
-
-  new CronJob(
-    `0/5 * * * * *`,
-    async function () {
-      if (has_next) {
-        try {
-          const response = await CallJSTAPI(URL, biz);
-          if (response.code === 0) {
-            const data = response.data
-            if (data.datas instanceof Array) {
-              list.push(...data.datas);
+    new CronJob(
+      `0/5 * * * * *`,
+      async function () {
+        if (has_next) {
+          try {
+            const response = await CallJSTAPI(URL, biz);
+            if (response.code === 0) {
+              const data = response.data;
+              if (data.datas instanceof Array) {
+                list.push(...data.datas);
+              }
+              has_next = data.has_next;
+              biz.page_index++;
+            } else {
+              has_next = false;
+              rej(foramtRequestError(biz, "订单操作日志请求错误", response));
             }
-            has_next = data.has_next;
-            biz.page_index++;
-          } else {
+          } catch (error) {
+            rej(foramtRequestError(biz, "订单操作日志请求网络错误", error));
             has_next = false;
-            rej(foramtRequestError(biz, '订单操作日志请求错误', response))
           }
-        } catch (error) {
-          rej(foramtRequestError(biz, '订单操作日志请求网络错误', error))
-          has_next = false
+        } else {
+          this.stop();
         }
-      } else {
-        this.stop();
-      }
-    },
-    async function () {
-      try {
-        const result = await prisma.order_operation_log.createMany({ data: list });
-        foramtRequestDBInsert(biz, '订单操作日志', result.count)
-        res('ok')
-      } catch (error) {
-        rej(foramtRequestDBInsert(biz, '订单操作日志', error.message))
-      }
-    },
-    true,
-    "system"
-  );
-  })
-
+      },
+      async function () {
+        try {
+          for (const log of list) {
+            await prisma.order_operation_log.upsert({
+              where: {
+                oa_id: log.oa_id,
+              },
+              update: log,
+              create: log,
+            });
+          }
+          foramtRequestDBInsert(biz, "订单操作日志", list.length);
+          res("ok");
+        } catch (error) {
+          rej(foramtRequestDBInsert(biz, "订单操作日志", error.message));
+        }
+      },
+      true,
+      "system"
+    );
+  });
 }
 
 module.exports = { getLogs };
