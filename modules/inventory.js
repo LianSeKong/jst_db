@@ -44,32 +44,36 @@ function parallel(wms_co_id, name, modified_begin, modified_end) {
                         hasNext = has_next;
                     } else {
                         hasNext = false
-                        foramtRequestError(biz, `商品库存请求错误, wms_co_id: ${biz.wms_co_id}`, response)
+                        rej(foramtRequestError(biz, `商品库存请求错误, wms_co_id: ${biz.wms_co_id}`, response))
                     }
                 } catch (error) {
                     hasNext = false
-                    foramtRequestError(biz, '商品库存请求网络错误', error)
+                    rej(foramtRequestError(biz, '商品库存请求网络错误', error))
                 }
             } else {
                 this.stop()
             }
         }, // onTick
         async function () {
-            for (const inventory of list) {
-                delete inventory.ts
-                inventory.wms_co_id = biz.wms_co_id
-                await prisma.inventory.upsert({
-                    where: {
-                      sku_id: inventory.sku_id,
-                    },
-                    update: inventory,
-                    create: inventory,
+            try {
+                for (const inventory of list) {
+                    delete inventory.ts
+                    inventory.wms_co_id = biz.wms_co_id
+                    await prisma.inventory.upsert({
+                        where: {
+                          sku_id: inventory.sku_id,
+                        },
+                        update: inventory,
+                        create: inventory,
+                    })
+                }
+                foramtRequestDBInsert(biz, `商品库存, \n仓库名称：${name}`, {
+                    '插入|更新': list.length
                 })
+                res('ok')
+            } catch (error) {
+                rej(foramtRequestDBInsert(biz, `商品库存, \n仓库名称：${name}`, error.message))
             }
-            foramtRequestDBInsert(biz, `商品库存, \n仓库名称：${name}`, {
-                '插入|更新': list.length
-            })
-            res('ok')
         }, // onComplete
         true, // start
         'system'

@@ -21,7 +21,7 @@ function getCombineShopList(modified_begin, modified_end) {
     let has_next = true;
   
     new CronJob(
-        `0/7 * * * * *`,
+        `0/5 * * * * *`,
         async function () {
           if (has_next) {
             try {
@@ -35,10 +35,10 @@ function getCombineShopList(modified_begin, modified_end) {
                 biz.page_index++;
               } else {
                 has_next = false;
-                foramtRequestError(biz, '组合装请求错误', response)
+                rej(foramtRequestError(biz, '组合装请求错误', response))
               }
             } catch (error) {
-              foramtRequestError(biz, '组合装请求网络错误', error)
+              rej(foramtRequestError(biz, '组合装请求网络错误', error))
               has_next = false;
             }
           } else {
@@ -55,19 +55,22 @@ function getCombineShopList(modified_begin, modified_end) {
               return item
           })
   
-          const itemResult = await prisma.combine_shops_item.createMany({
-            data: itemList,
-          });
-  
-          const dataResult = await prisma.combine_shops.createMany({
-            data,
-          });
-          
-          foramtRequestDBInsert(biz, '组合装商品资料', {
-            '组合装子表': itemResult.count,
-            '组合装总表': dataResult.count
-           })
-           res('ok')
+          try {
+            const itemResult = await prisma.combine_shops_item.createMany({
+              data: itemList,
+            });
+    
+            const dataResult = await prisma.combine_shops.createMany({
+              data,
+            });
+            foramtRequestDBInsert(biz, '组合装商品资料', {
+              '组合装子表': itemResult.count,
+              '组合装总表': dataResult.count
+             })
+             res('ok')
+          } catch(error) {
+            rej("组合装商品资料数据库操作出错： ", JSON.stringify(biz), error.message)
+          }
         },
         true,
         "system" // timeZone

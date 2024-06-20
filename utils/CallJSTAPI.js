@@ -60,7 +60,7 @@ async function CallJSTAPI(apiPath, bizParam) {
         });
         return response.data;
     } catch (error) {
-        console.info(error.message, error.stack);
+      throw error
     }
 }
 

@@ -1,0 +1,1 @@
+DATABASE_URL="sqlserver://datacenter:14331;database=jstData;user=zbot;password=Zbot@12345;trustServerCertificate=true"

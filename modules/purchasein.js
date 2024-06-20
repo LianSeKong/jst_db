@@ -71,23 +71,27 @@ function getPurchaseinList(modified_begin, modified_end) {
                             hasNext = has_next;
                         } else {
                             hasNext = false;
-                            foramtRequestError(biz, '采购入库请求错误', response)
+                            rej(foramtRequestError(biz, '采购入库请求错误', response))
                         }
                     } catch (error) {
                         hasNext = false;
-                        foramtRequestError(biz, '采购入库网络错误', error)
+                        rej(foramtRequestError(biz, '采购入库网络错误', error))
                     }
                 } else {
                     this.stop()
                 }
             }, // onTick
             async function () {
-                const result = await updateOrInsertDB(list, itemList)
-                foramtRequestDBInsert(biz, '采购入库', {
-                    '采购入库主表': result.list,
-                    '采购入库子表': result.itemList,
-                } )
-                res('ok')
+                try {
+                    const result = await updateOrInsertDB(list, itemList)
+                    foramtRequestDBInsert(biz, '采购入库', {
+                        '采购入库主表': result.list,
+                        '采购入库子表': result.itemList,
+                    } )
+                    res('ok')
+                } catch (error) {
+                    rej(foramtRequestDBInsert(biz, '采购入库', error.message))
+                }
             }, // onComplete
             true, // start
             'system'

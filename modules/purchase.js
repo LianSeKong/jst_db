@@ -83,24 +83,28 @@ function getPurchaseList(modified_begin, modified_end) {
               biz.page_index++;
             } else {
               has_next = false;
-              foramtRequestError(biz, '采购单请求错误', response)
+              rej(foramtRequestError(biz, '采购单请求错误', response))
             }
           } catch (error) {
             has_next = false;
-            foramtRequestError(biz, '采购单请求网络错误', error)
+            rej(foramtRequestError(biz, '采购单请求网络错误', error))
           }
         } else {
           this.stop();
         }
       },
       async function () {
-        let purchase_item_info = await insertIntoDatabaseOfPurchaseItem(itemList)
-        let purchase_info = await insertIntoDatabaseOfPurchase(list)
-        foramtRequestDBInsert(biz, '采购单', { 
-            '采购单主表': purchase_info.count,
-            '采购单子表': purchase_item_info.count  
-        })
-        res('ok')
+        try {
+          let purchase_item_info = await insertIntoDatabaseOfPurchaseItem(itemList)
+          let purchase_info = await insertIntoDatabaseOfPurchase(list)
+          foramtRequestDBInsert(biz, '采购单', { 
+              '采购单主表': purchase_info.count,
+              '采购单子表': purchase_item_info.count  
+          })
+          res('ok')
+        } catch (error) {
+          rej( foramtRequestDBInsert(biz, '采购单', error.message))
+        }
       },
       true,
       "system" // timeZone

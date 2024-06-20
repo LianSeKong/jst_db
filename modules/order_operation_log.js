@@ -21,7 +21,7 @@ function getLogs(modified_begin, modified_end) {
 
 
   new CronJob(
-    `0/7 * * * * *`,
+    `0/5 * * * * *`,
     async function () {
       if (has_next) {
         try {
@@ -35,10 +35,10 @@ function getLogs(modified_begin, modified_end) {
             biz.page_index++;
           } else {
             has_next = false;
-            foramtRequestError(biz, '订单操作日志请求错误', response)
+            rej(foramtRequestError(biz, '订单操作日志请求错误', response))
           }
         } catch (error) {
-          foramtRequestError(biz, '订单操作日志请求网络错误', error)
+          rej(foramtRequestError(biz, '订单操作日志请求网络错误', error))
           has_next = false
         }
       } else {
@@ -46,9 +46,13 @@ function getLogs(modified_begin, modified_end) {
       }
     },
     async function () {
-      const result = await prisma.order_operation_log.createMany({ data: list });
-      foramtRequestDBInsert(biz, '订单操作日志', result.count)
-      res('ok')
+      try {
+        const result = await prisma.order_operation_log.createMany({ data: list });
+        foramtRequestDBInsert(biz, '订单操作日志', result.count)
+        res('ok')
+      } catch (error) {
+        rej(foramtRequestDBInsert(biz, '订单操作日志', error.message))
+      }
     },
     true,
     "system"

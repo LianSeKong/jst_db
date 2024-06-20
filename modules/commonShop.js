@@ -16,7 +16,7 @@ function getCommonShopList(modified_begin, modified_end) {
   
   
     new CronJob(
-      `0/7 * * * * *`,
+      `0/5 * * * * *`,
       async function () {
         if (has_next) {
           try {
@@ -30,21 +30,24 @@ function getCommonShopList(modified_begin, modified_end) {
               biz.page_index = biz.page_index + 1;
             } else {
               has_next = false
-              foramtRequestError(biz, '普通商品资料请求错误', response)
+              rej(foramtRequestError(biz, '普通商品资料请求错误', response))
             }
           } catch (error) {
             has_next = false
-            foramtRequestError(biz,'普通商品资料请求网络错误', error)
+            rej(foramtRequestError(biz,'普通商品资料请求网络错误', error))
           } 
         } else {
           this.stop();
         }
       },
       async function () {
-        const result = await prisma.common_shops.createMany({ data: list })
-        foramtRequestDBInsert(biz, '普通商品资料', result.count)
-        res('ok')
-
+        try {
+          const result = await prisma.common_shops.createMany({ data: list })
+          foramtRequestDBInsert(biz, '普通商品资料', result.count)
+          res('ok')
+        } catch (error) {
+          rej("普通商品资料数据库操作出错： ", JSON.stringify(biz), error.message)
+        }
       },
       true,
       "system"

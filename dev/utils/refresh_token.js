@@ -62,26 +62,30 @@ async function CallJSTAPI(apiPath) {
         });
         return response.data;
     } catch (error) {
+        console.info(error.message, error.stack);
         throw error;
     }
 }
 
 
 async function refrshToken(generate) {
-    const res = await CallJSTAPI("openWeb/auth/refreshToken")
-    if (res.code === 0) {
-        const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'jstconfig.json'), 'utf8'))
-        config.refresh_token = res.data.refresh_token
-        config.expires_in = res.data.expires_in
-        config.access_token = res.data.access_token
-        config.generate = generate
-        fs.writeFileSync(path.join(__dirname, 'jstconfig.json'), JSON.stringify(config, null, 4))
-        return res.data.refresh_token
-    } else {
-        return 'error'
+    try {
+        const res = await CallJSTAPI("openWeb/auth/refreshToken")
+        if (res.code === 0) {
+            const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'jstconfig.json'), 'utf8'))
+            config.refresh_token = res.data.refresh_token
+            config.expires_in = res.data.expires_in
+            config.access_token = res.data.access_token
+            config.generate = generate
+            fs.writeFileSync(path.join(__dirname, 'jstconfig.json'), JSON.stringify(config, null, 4))
+            return res.data.refresh_token
+        } else {
+            throw Error('刷新TOKEN时失败', res)
+        }
+    } catch (error) {
+        throw Error('调用刷新TOKEN接口时失败: ', error.message)
     }
 }
-
 
 module.exports = { refrshToken }
 
