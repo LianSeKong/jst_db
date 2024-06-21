@@ -1,9 +1,12 @@
 const { prisma } = require("../utils/dbConnect");
 const { CallJSTAPI } = require("../utils/CallJSTAPI");
 const { CronJob } = require("cron");
-const { foramtRequestError, foramtRequestDBInsert } = require('../utils/tools')
-async function insertIntoDatabaseOfPurchase(list) {
-  const data = list.map((item) => {
+const { createLog  } = require('../utils/log')
+const { foramtRequestError } = require("../utils/tools");
+const URL = 'open/purchase/query'
+
+function foramtStatus(list) {
+  return list.map((item) => {
     delete item.items;
     switch (item.status) {
       case "Creating":
@@ -22,8 +25,6 @@ async function insertIntoDatabaseOfPurchase(list) {
         item.status = "作废";
         break;
     }
-
-    
     switch (item.receive_status) {
       case "Timeout":
         item.receive_status = "预计收货超时";
@@ -40,21 +41,11 @@ async function insertIntoDatabaseOfPurchase(list) {
     }
     return item;
   });
-  return await prisma.purchase.createMany({
-    data,
-  });
-
-}
-
-async function insertIntoDatabaseOfPurchaseItem(data) {
-  return await prisma.purchase_item.createMany({
-     data
-  });
 }
 
 // open/combine/sku/query
-function getPurchaseList(modified_begin, modified_end) {
-  return new Promise((res, rej) => {
+function updatePurchase(modified_begin, modified_end) {
+  return new Promise((resolve, reject) => {
     const biz = {
       page_index: 1,
       page_size: 50,
@@ -63,52 +54,65 @@ function getPurchaseList(modified_begin, modified_end) {
       po_ids: [],
       so_ids: [],
     };
-    let list = [];
-    let itemList = [];
-    let has_next = true;
-  
-    new CronJob(
-      `0/7 * * * * *`,
-      async function () {
-        if (has_next) {
-          try {
-            const response= await CallJSTAPI("open/purchase/query", biz);
-            if (response.code === 0) {
-              const data = response.data 
-              if (data.datas instanceof Array) {
-                list.push(...data.datas);
-                itemList.push(...(data.datas.flatMap((item) => item.items)).filter(item => item instanceof Object) )
-              }
-              has_next = data.has_next;
-              biz.page_index++;
-            } else {
-              has_next = false;
-              rej(foramtRequestError(biz, '采购单请求错误', response))
-            }
-          } catch (error) {
-            has_next = false;
-            rej(foramtRequestError(biz, '采购单请求网络错误', error))
-          }
-        } else {
-          this.stop();
+    const circle = {
+      has_next: true,
+      updateList: [],
+    };
+    async function onTick() {
+      if (circle.has_next === false) {
+        this.stop();
+      }
+      try {
+        const response= await CallJSTAPI(URL, biz);
+        if (response.code !== 0) {
+          circle.has_next = false;
+          console.log(response.msg);
+          createLog(biz.modified_begin, biz.modified_end, null, "采购单", response.msg, false)  
+          reject(foramtRequestError(biz, "采购单", response.msg));
         }
-      },
-      async function () {
-        try {
-          let purchase_item_info = await insertIntoDatabaseOfPurchaseItem(itemList)
-          let purchase_info = await insertIntoDatabaseOfPurchase(list)
-          foramtRequestDBInsert(biz, '采购单', { 
-              '采购单主表': purchase_info.count,
-              '采购单子表': purchase_item_info.count  
-          })
-          res('ok')
-        } catch (error) {
-          rej( foramtRequestDBInsert(biz, '采购单', error.message))
-        }
-      },
-      true,
-      "system" // timeZone
-    );
+
+        const { data = {} } = response;
+        const { datas = [], has_next = false } = data;
+        if (datas instanceof Array) {
+          circle.updateList.push(...datas);
+      }
+        biz.page_index++;
+        circle.has_next = has_next;
+      } catch (error) {
+        console.log(error);
+        createLog(biz.modified_begin, biz.modified_end, null, "采购单", error, false)  
+        reject(foramtRequestError(biz, "采购单", error));
+      }
+    }
+    
+
+    
+    async function onComplete() {
+      const itemList = circle.updateList
+        .flatMap((item) => item.items)
+        .filter((item) => item instanceof Object);
+
+      const updateList = foramtStatus(circle.updateList);
+
+      try {
+        await prisma.purchase.createMany({
+          data: updateList
+        });
+        await prisma.purchase_item.createMany({
+          data: itemList
+        })
+        createLog(biz.modified_begin, biz.modified_end, itemList.length, "采购单", URL, true)
+        resolve('ok')
+      } catch (error) {
+        console.log(error);
+        createLog(biz.modified_begin, biz.modified_end, null, "采购单", error.message, false)
+        reject(error.message);
+      }
+    }
+
+    new CronJob(`0/5 * * * * *`, onTick, onComplete, true, "system");
+
+
   })
 }
-module.exports = { getPurchaseList };
+module.exports = { updatePurchase };

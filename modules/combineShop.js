@@ -1,80 +1,82 @@
 const { prisma } = require("../utils/dbConnect");
 const { CallJSTAPI } = require("../utils/CallJSTAPI");
 const { CronJob } = require("cron");
-const fs = require('fs')
-const path = require('path')
-const { foramtRequestError, foramtRequestDBInsert } = require('../utils/tools')
-const combine_itemsku_flds = JSON.parse(fs.readFileSync(path.join(__dirname, './combine_itemsku_flds.json'), 'utf8'))
-
+const fs = require("fs");
+const path = require("path");
+const { foramtRequestError } = require("../utils/tools");
+const { createLog  } = require('../utils/log')
+const combine_itemsku_flds = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "./combine_itemsku_flds.json"), "utf8")
+);
+const URL = "open/combine/sku/query"
 // open/combine/sku/query
-function getCombineShopList(modified_begin, modified_end) {
-  return new Promise( (res, rej) => {
+function updateCombineShop(modified_begin, modified_end) {
+  return new Promise((resolve, reject) => {
     const biz = {
       page_index: 1,
       page_size: 50,
       modified_begin,
       modified_end,
-      combine_itemsku_flds
+      combine_itemsku_flds,
     };
-  
-    let list = [];
-    let has_next = true;
-  
-    new CronJob(
-        `0/5 * * * * *`,
-        async function () {
-          if (has_next) {
-            try {
-              const response = await CallJSTAPI("open/combine/sku/query", biz);
-              if (response.code === 0) {
-                const data = response.data 
-                if (data.datas instanceof Array) {
-                  list.push(...data.datas);
-                }
-                has_next = data.has_next;
-                biz.page_index++;
-              } else {
-                has_next = false;
-                rej(foramtRequestError(biz, '组合装请求错误', response))
-              }
-            } catch (error) {
-              rej(foramtRequestError(biz, '组合装请求网络错误', error))
-              has_next = false;
-            }
-          } else {
-            this.stop();
-          }
-        },
-        async function () {
-          const itemList = list.flatMap((item) => item.items)
-          .filter(item => item instanceof Object);
-  
 
-          const data = list.map((item) => {
-              delete item.items
-              return item
-          })
-  
-          try {
-            const itemResult = await prisma.combine_shops_item.createMany({
-              data: itemList,
-            });
-    
-            const dataResult = await prisma.combine_shops.createMany({
-              data,
-            });
-            foramtRequestDBInsert(biz, '组合装商品资料', {
-              '组合装子表': itemResult.count,
-              '组合装总表': dataResult.count
-             })
-             res('ok')
-          } catch(error) {
-            rej("组合装商品资料数据库操作出错： ", JSON.stringify(biz), error.message)
-          }
-        },
-        true,
-        "system" // timeZone
-      );
-  })
+    const circle = {
+      has_next: true,
+      updateList: [],
+    };
+
+    async function onTick() {
+      if (circle.has_next === false) {
+        this.stop();
+      }
+      try {
+        const response = await CallJSTAPI(URL, biz);
+        if (response.code !== 0) {
+          circle.has_next = false;
+          createLog(biz.modified_begin, biz.modified_end, null, "组合装资料", response.msg, false)  
+          reject(foramtRequestError(biz, "组合装资料", response.msg));
+        }
+
+        const { data = {} } = response;
+        const { datas = [], has_next = false } = data;
+        if (datas instanceof Array) {
+          circle.updateList.push(...datas);
+      }
+        biz.page_index++;
+        circle.has_next = has_next;
+      } catch (error) {
+        createLog(biz.modified_begin, biz.modified_end, null, "组合装资料", error, false)  
+        reject("组合装商品资料：" + error);
+      }
+    }
+
+    async function onComplete() {
+      const itemList = circle.updateList
+        .flatMap((item) => item.items)
+        .filter((item) => item instanceof Object);
+
+      const data = circle.updateList.map((item) => {
+        delete item.items;
+        return item;
+      });
+
+      try {
+        const itemResult = await prisma.combine_shops_item.createMany({
+          data: itemList,
+        });
+
+        await prisma.combine_shops.createMany({
+          data,
+        });
+        createLog(biz.modified_begin, biz.modified_end, itemResult.count, "组合装资料", URL, true)  
+        resolve('ok')
+      } catch (error) {
+        createLog(biz.modified_begin, biz.modified_end, null, "组合装资料", error.message, false)  
+        reject(error.message);
+      }
+    }
+
+    new CronJob(`0/5 * * * * *`, onTick, onComplete, true, "system");
+  });
 }
-module.exports = { getCombineShopList };
+module.exports = { updateCombineShop };

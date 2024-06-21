@@ -1,17 +1,17 @@
-const { getCombineShopList } = require('./combineShop')
-const { getCommonShopList } = require('./commonShop')
+const { updateCombineShop } = require('./combineShop')
+const { updateCommonShop } = require('./commonShop')
 const { getLogs } = require('./order_operation_log')
-const { getInventoryList } = require('./inventory.js')
-const { getPurchaseList } = require('./purchase.js')
-const { getPurchaseinList} = require('./purchasein.js')
+const { updateInventory } = require('./inventory.js')
+const { updatePurchase } = require('./purchase.js')
+const { updatePurchasein} = require('./purchasein.js')
 const { updatePartner } = require('./partner.js')
 
 module.exports = {
-    updateCombineShop: getCombineShopList,
-    updateCommonShop: getCommonShopList,
+    updatePurchase,
+    updateInventory,
     updateLogs: getLogs,
-    updateInventory: getInventoryList,
-    updatePurchase: getPurchaseList,
-    updatePurchasein: getPurchaseinList,
+    updateCommonShop,
+    updatePurchasein,
+    updateCombineShop,
     updatePartner
 }

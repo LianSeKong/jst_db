@@ -7,21 +7,17 @@ const {
   updatePurchase,
   updatePurchasein,
 } = require("./modules/index.js");
-const { refrshToken } = require("./utils/refresh_token");
+const { CallRefreshToken } = require("./utils/CallJSTAPI.js");
 const moment = require("moment");
 const formatStr = "YYYY-MM-DD HH:mm:ss";
-const fs = require("fs");
-const path = require("path");
 const { prisma } = require("./utils/dbConnect");
 const { CronJob } = require("cron");
 const { sendDingDing } = require("./utils/dingding.js")
+const { getJSTConfig } = require('./utils/tools.js')
 new CronJob(
   "0 0/5 * * * *",
   async function () {
-    const config = JSON.parse(
-      fs.readFileSync(path.join(__dirname, "./utils/jstconfig.json"), "utf8")
-    );
-
+    const config = getJSTConfig()
     const m = new moment();
     let modified_end = m.format(formatStr);
     m.subtract(5, "m");
@@ -29,12 +25,11 @@ new CronJob(
     try {
       if (
         modified_end >
-        new moment(config.generate).add(21, "days").format(formatStr)
+        new moment(config.generate).add(20, "days").format(formatStr)
       ) {
-        await refrshToken(modified_end);
+        await CallRefreshToken();
       }
       await updatePartner();
-
       await Promise.all([
         updateCombineShop(modified_begin, modified_end),
         updateCommonShop(modified_begin, modified_end),
@@ -44,7 +39,7 @@ new CronJob(
         updatePurchasein(modified_begin, modified_end),
       ]);
     } catch (error) {
-        sendDingDing(error)
+      sendDingDing(error)
     }
     prisma.$disconnect();
   }, // onTick

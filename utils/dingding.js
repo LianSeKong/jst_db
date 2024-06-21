@@ -1,7 +1,6 @@
 const axios = require('axios');
 const crypto = require('crypto');
 
-
 async function sendDingDing(content) {
   const baseURL = 'https://oapi.dingtalk.com'
   let robotURL = '/robot/send'

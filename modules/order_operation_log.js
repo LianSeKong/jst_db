@@ -1,67 +1,69 @@
+"use strict"
 const { prisma } = require("../utils/dbConnect");
 const { CallJSTAPI } = require("../utils/CallJSTAPI");
 // 订单操作日志URL
 const { CronJob } = require("cron");
 const URL = "open/order/action/query";
-const { foramtRequestError, foramtRequestDBInsert } = require("../utils/tools");
-
+const { createLog  } = require('../utils/log')
+const { foramtRequestError } = require("../utils/tools");
 function getLogs(modified_begin, modified_end) {
-  return new Promise((res, rej) => {
+  return new Promise((resolve, reject) => {
     // 参数
     const biz = {
       page_index: 1,
-      page_size: 50,
+      page_size: 500,
       modified_begin,
       modified_end,
     };
-    let list = [];
-    let has_next = true;
+    const circle = {
+      has_next: true,
+      updateList: [],
+    };
 
-    new CronJob(
-      `0/5 * * * * *`,
-      async function () {
-        if (has_next) {
-          try {
-            const response = await CallJSTAPI(URL, biz);
-            if (response.code === 0) {
-              const data = response.data;
-              if (data.datas instanceof Array) {
-                list.push(...data.datas);
-              }
-              has_next = data.has_next;
-              biz.page_index++;
-            } else {
-              has_next = false;
-              rej(foramtRequestError(biz, "订单操作日志请求错误", response));
-            }
-          } catch (error) {
-            rej(foramtRequestError(biz, "订单操作日志请求网络错误", error));
-            has_next = false;
-          }
-        } else {
-          this.stop();
+    async function onTick() {
+      if (circle.has_next === false) {
+        this.stop();
+      }
+      try {
+        const response = await CallJSTAPI(URL, biz);
+        if (response.code !== 0) {
+          circle.has_next = false;
+          createLog(biz.modified_begin, biz.modified_end, null, "订单操作日志", response.msg, false)  
+          reject(foramtRequestError(biz, "订单操作日志", response.msg));
         }
-      },
-      async function () {
-        try {
-          for (const log of list) {
-            await prisma.order_operation_log.upsert({
-              where: {
-                oa_id: log.oa_id,
-              },
-              update: log,
-              create: log,
-            });
-          }
-          foramtRequestDBInsert(biz, "订单操作日志", list.length);
-          res("ok");
-        } catch (error) {
-          rej(foramtRequestDBInsert(biz, "订单操作日志", error.message));
+
+        const { data = {} } = response;
+        const { datas = [], has_next = false } = data;
+        if (datas instanceof Array) {
+          circle.updateList.push(...datas);
+      }
+        biz.page_index++;
+        circle.has_next = has_next;
+      } catch (error) {
+        createLog(biz.modified_begin, biz.modified_end, null, "订单操作日志", error, false)  
+        reject(foramtRequestError(biz, "订单操作日志", error));
+      }
+    }
+
+    async function onComplete() {
+      try {
+        for (const log of circle.updateList) {
+          await prisma.order_operation_log.upsert({
+            where: {
+              oa_id: log.oa_id,
+            },
+            update: log,
+            create: log,
+          });
         }
-      },
-      true,
-      "system"
-    );
+        createLog(biz.modified_begin, biz.modified_end, circle.updateList.length, "订单操作日志", "", true)
+        resolve("ok");
+      } catch (error) {
+        createLog(biz.modified_begin, biz.modified_end, null, "订单操作日志", error.message, true)
+        reject(error.message);
+      }
+    }
+    new CronJob(`0/5 * * * * *`, onTick, onComplete, true, "system");
   });
 }
 

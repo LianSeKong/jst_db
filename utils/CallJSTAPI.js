@@ -1,51 +1,25 @@
 const axios = require('axios')
-const crypto = require('crypto')
-const fs = require('fs')
-const path = require('path')
-/***
- * 聚水潭 通用 api 签名函数
- */
-function CommonSign(apiParams, app_secret) {
-    /** 通用 md5 签名函数 */
-    const shasum = crypto.createHash("md5");
-    if (apiParams == null || !(apiParams instanceof Object)) {
-        return "";
+const { getJSTConfig, refreshJSTConfig } = require('./tools')
+const { CommonSign } = require('./sign')
+
+
+async function CallJSTAPI(apiPath, biz) {
+    const config = getJSTConfig();
+    const { app_key, app_secret } = config;
+    const  timestamp =  Math.floor(new Date().getTime() / 1000)
+
+    /**
+     *  聚水潭接口调用API参数
+     */
+    let apiParams;
+    if (biz === undefined) {
+        apiParams = tokenApiParams()
+    } else {
+        apiParams = commonApiParams()
     }
-    /** 获取 apiParms中的key 去除 sign key,并排序 */
-    let sortedKeys = Object.keys(apiParams)
-        .filter((item) => item !== "sign")
-        .sort();
-    /** 排序后字符串 */
-    let sortedParamStr = "";
-    // 拼接字符串参数
-    sortedKeys.forEach(function (key, index, ary) {
-        let keyValue = apiParams[key];
-        if (keyValue instanceof Object) keyValue = JSON.stringify(keyValue);
-        if (key != "sign" && keyValue != null && keyValue != "") {
-            sortedParamStr += `${key}${keyValue}`;
-        }
-    });
-    /** 拼接加密字符串 */
-    let paraStr = app_secret + sortedParamStr;
-
-    shasum.update(paraStr);
-    let sign = (apiParams.sign = shasum.digest("hex"));
-    return sign;
-}
-
-async function CallJSTAPI(apiPath, bizParam) {
-    const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'jstconfig.json'), 'utf8'))
-    /** api参数拼接 */
-    const apiParams = {
-        access_token: config.access_token, 
-        app_key: config.app_key,
-        timestamp: Math.floor(new Date().getTime() / 1000), //当前时间戳
-        charset: "UTF-8",
-        version: "2",
-        biz: bizParam,
-    };
     const apiUrl = `${config.jstURL}/${apiPath}`;
-    CommonSign(apiParams, config.app_secret);
+    // 签名
+    CommonSign(apiParams, app_secret);
     try {
         const params = new URLSearchParams();
         for (let key in apiParams) {
@@ -60,10 +34,41 @@ async function CallJSTAPI(apiPath, bizParam) {
         });
         return response.data;
     } catch (error) {
-      throw error
+        return Promise.reject(error.message)
+    }
+
+    function tokenApiParams() {
+        const grant_type = 'refresh_token';
+        const charset = "UTF-8";
+        const scope = 'all';
+        const { refresh_token } = config;
+        return { app_key, timestamp, refresh_token, grant_type, charset, scope }
+    }
+
+    function commonApiParams() {
+        const charset = "UTF-8";
+        const version = "2";
+        const { access_token } = config;
+        return { access_token, app_key, timestamp, charset, version, biz };
+    }
+}
+
+
+async function CallRefreshToken() {
+    try {
+        const data = await CallJSTAPI("openWeb/auth/refreshToken")
+        if (data.code === 0) {
+            refreshJSTConfig(data.data)
+            return data.data
+        } else {
+           return Promise.reject(data)
+        }
+    } catch (error) {
+        return Promise.reject(error)
     }
 }
 
 module.exports = {
-    CallJSTAPI
+    CallJSTAPI,
+    CallRefreshToken
 }
