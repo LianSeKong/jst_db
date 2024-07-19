@@ -8,6 +8,7 @@ const URL = 'open/purchase/query'
 function foramtStatus(list) {
   return list.map((item) => {
     delete item.items;
+    delete item.inQty;
     switch (item.status) {
       case "Creating":
         item.status = "草拟";

@@ -22,7 +22,7 @@ const createLog = async (
     end_datetime:  modified_end,
         count,
         database_name,
-        note,
+        note: note.slice(0, 50),
         status
     }, {
         params: {

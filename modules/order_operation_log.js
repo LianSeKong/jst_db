@@ -28,7 +28,7 @@ function getLogs(modified_begin, modified_end) {
         const response = await CallJSTAPI(URL, biz);
         if (response.code !== 0) {
           circle.has_next = false;
-          createLog(biz.modified_begin, biz.modified_end, null, "订单操作日志", response.msg, false)  
+          createLog(biz.modified_begin, biz.modified_end, null, "订单操作日志", response.msg.slice(0, 20), false)  
           reject(foramtRequestError(biz, "订单操作日志", response.msg));
         }
 
@@ -40,7 +40,7 @@ function getLogs(modified_begin, modified_end) {
         biz.page_index++;
         circle.has_next = has_next;
       } catch (error) {
-        createLog(biz.modified_begin, biz.modified_end, null, "订单操作日志", error, false)  
+        createLog(biz.modified_begin, biz.modified_end, null, "订单操作日志", error.slice(0, 20), false)  
         reject(foramtRequestError(biz, "订单操作日志", error));
       }
     }
@@ -59,7 +59,7 @@ function getLogs(modified_begin, modified_end) {
         createLog(biz.modified_begin, biz.modified_end, circle.updateList.length, "订单操作日志", "", true)
         resolve("ok");
       } catch (error) {
-        createLog(biz.modified_begin, biz.modified_end, null, "订单操作日志", error.message, true)
+        createLog(biz.modified_begin, biz.modified_end, null, "订单操作日志", error.message.slice(0, 20), true)
         reject(error.message);
       }
     }

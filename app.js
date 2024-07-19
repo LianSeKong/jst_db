@@ -11,7 +11,7 @@ const { CallRefreshToken } = require("./utils/CallJSTAPI.js");
 const moment = require("moment");
 const formatStr = "YYYY-MM-DD HH:mm:ss";
 const { getJSTConfig } = require('./utils/tools.js')
-
+const axios = require("axios")
 const { prisma } = require("./utils/dbConnect");
 const { CronJob } = require("cron");
 const { sendDingDing } = require("./utils/dingding.js")
@@ -19,9 +19,9 @@ async function test() {
   const config = getJSTConfig()
 
   const m = new moment();
-  let modified_end = m.format(formatStr);
-  m.subtract(5, "hours");
-  let modified_begin = m.format(formatStr);
+  let modified_end = '2024-07-19 09:00:00' 
+  let modified_begin = '2024-07-18 14:15:00' 
+
   try {
     if (
       modified_end >
@@ -30,11 +30,11 @@ async function test() {
       await CallRefreshToken();
     }
     await updatePartner();
-    await Promise.all([
+     await Promise.all([
       updateCombineShop(modified_begin, modified_end),
       updateCommonShop(modified_begin, modified_end),
       updateInventory(modified_begin, modified_end),
-      updateLogs(modified_begin, modified_end),
+      // updateLogs(modified_begin, modified_end),
       updatePurchase(modified_begin, modified_end),
       updatePurchasein(modified_begin, modified_end),
     ]);
@@ -44,4 +44,5 @@ async function test() {
   prisma.$disconnect();
 }
 
-test()
+ test()
+
